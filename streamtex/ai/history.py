@@ -110,6 +110,10 @@ def save_version(
         quality=quality,
         base_image=base_image,
         revised_prompt=revised_prompt,
+        display_zoom=existing_meta.display_zoom if existing_meta else None,
+        display_width=existing_meta.display_width if existing_meta else None,
+        display_height=existing_meta.display_height if existing_meta else None,
+        display_keep_ratio=existing_meta.display_keep_ratio if existing_meta else True,
     )
     save_metadata(meta, current_json)
 

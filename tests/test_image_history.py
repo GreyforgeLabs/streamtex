@@ -14,7 +14,7 @@ from streamtex.ai.history import (
     rollback,
     save_version,
 )
-from streamtex.ai.metadata import load_metadata
+from streamtex.ai.metadata import load_metadata, metadata_path_for, save_metadata
 
 # ===================================================================
 # Fixtures
@@ -119,6 +119,24 @@ class TestSaveVersion:
         meta = get_current_metadata("test", managed_dir=managed_dir)
         assert meta.version == 3
         assert meta.prompt == "version 3"
+
+    def test_new_version_preserves_display_settings(self, managed_dir, sample_image):
+        current = save_version("hero", sample_image, managed_dir=managed_dir)
+        meta = get_current_metadata("hero", managed_dir=managed_dir)
+        meta.display_zoom = 60
+        meta.display_width = "70%"
+        meta.display_height = "auto"
+        meta.display_keep_ratio = False
+        save_metadata(meta, metadata_path_for(current))
+
+        save_version("hero", sample_image, managed_dir=managed_dir)
+
+        current_meta = get_current_metadata("hero", managed_dir=managed_dir)
+        assert current_meta.version == 2
+        assert current_meta.display_zoom == 60
+        assert current_meta.display_width == "70%"
+        assert current_meta.display_height == "auto"
+        assert current_meta.display_keep_ratio is False
 
 
 # ===================================================================

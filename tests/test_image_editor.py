@@ -3,6 +3,46 @@
 from unittest.mock import MagicMock, patch
 
 
+class TestDisplayMetadata:
+    def test_load_display_retries_after_metadata_error(self):
+        """Metadata load failures should not mark display state initialized."""
+        from streamtex import image_editor
+
+        fake_st = MagicMock()
+        fake_st.session_state = {}
+
+        with patch.object(image_editor, "st", fake_st), \
+             patch("streamtex.ai.history.get_current_metadata", side_effect=RuntimeError("boom")):
+            image_editor._load_display_from_metadata("hero", "stx_img_display_hero")
+
+        assert "stx_img_display_hero_initialized" not in fake_st.session_state
+
+    def test_load_display_marks_initialized_after_success(self):
+        """Successful metadata loads should initialize session display settings once."""
+        from streamtex import image_editor
+        from streamtex.ai.metadata import ImageMetadata
+
+        fake_st = MagicMock()
+        fake_st.session_state = {}
+        meta = ImageMetadata(
+            name="hero",
+            display_zoom=60,
+            display_width="70%",
+            display_height="auto",
+            display_keep_ratio=False,
+        )
+
+        with patch.object(image_editor, "st", fake_st), \
+             patch("streamtex.ai.history.get_current_metadata", return_value=meta):
+            image_editor._load_display_from_metadata("hero", "stx_img_display_hero")
+
+        assert fake_st.session_state["stx_img_display_hero_initialized"] is True
+        assert fake_st.session_state["stx_img_display_hero_zoom"] == 60
+        assert fake_st.session_state["stx_img_display_hero_width"] == "70%"
+        assert fake_st.session_state["stx_img_display_hero_height"] == "auto"
+        assert fake_st.session_state["stx_img_display_hero_keep_ratio"] is False
+
+
 class TestStableKey:
     def test_deterministic(self):
         """Same inputs produce same key."""

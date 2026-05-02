@@ -378,7 +378,6 @@ def _load_display_from_metadata(name: str, prefix: str) -> None:
     init_key = f"{prefix}_initialized"
     if st.session_state.get(init_key):
         return
-    st.session_state[init_key] = True
 
     try:
         from .ai.history import get_current_metadata
@@ -395,8 +394,9 @@ def _load_display_from_metadata(name: str, prefix: str) -> None:
                 st.session_state.setdefault(f"{prefix}_keep_ratio", meta.display_keep_ratio)
         else:
             logger.warning("[DIAG:LOAD] '%s' get_current_metadata returned None — no metadata file found", name)
+        st.session_state[init_key] = True
     except Exception:
-        logger.warning("[DIAG:LOAD] '%s' EXCEPTION — zoom NOT loaded, flag set", name, exc_info=True)
+        logger.warning("[DIAG:LOAD] '%s' EXCEPTION — display settings will retry", name, exc_info=True)
 
 
 def _persist_display_to_metadata(name: str, prefix: str) -> None:
